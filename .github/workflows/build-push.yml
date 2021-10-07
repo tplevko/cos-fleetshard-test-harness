@@ -1,0 +1,23 @@
+name: build-push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GitHub repository
+        uses: actions/checkout@v2
+      - name: Login to image registry
+        uses: docker/login-action@v1
+        with:
+          registry: quay.io
+          username: ${{ secrets.IMAGE_REPO_USERNAME }}
+          password: ${{ secrets.IMAGE_REPO_PASSWORD }}
+      - name: Build and push image
+        env:
+          IMG: ${{ secrets.IMAGE_REPO_NAME }}
+        run: make build docker-build docker-push
