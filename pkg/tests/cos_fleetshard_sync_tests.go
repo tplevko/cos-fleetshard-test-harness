@@ -5,13 +5,11 @@ import (
 	"flag"
 	"fmt"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -89,7 +87,7 @@ var _ = ginkgo.Describe("cos-fleetshard-sync test harness", func() {
 	)
 
 	table.DescribeTable("pods running verification",
-		func(podName string, found *bool) {
+		func(podSelector string, found *bool) {
 			kubernetes, err := kubernetes.NewForConfig(config)
 			Expect(err).NotTo(HaveOccurred())
 			var checkErr error = nil
@@ -97,49 +95,46 @@ var _ = ginkgo.Describe("cos-fleetshard-sync test harness", func() {
 
 			// Wait 3 minutes for every pod to start
 			for retry <= 18 {
-				result, pod := CheckPodStatus(kubernetes, podName)
-				if result {
+				checkErr = CheckPodStatus(kubernetes, podSelector)
+				if checkErr == nil {
 					break
-				} else if retry == 18 {
-					checkErr = fmt.Errorf("Pod is not running after waiting 3 minutes : %v", pod)
 				} else {
 					time.Sleep(10 * time.Second)
 				}
 				retry = retry + 1
-				fmt.Printf("%d Retry to check pods status(every 10s)\n", retry)
+				fmt.Printf("%d Retry to check %s pods status(every 10s)\n", retry, podSelector)
 			}
 
-			if err != nil {
-				*found = false
-			} else {
-				*found = true
-			}
+			*found = checkErr == nil
 			Expect(checkErr).NotTo(HaveOccurred())
 		},
-		table.Entry("Camel-k operator exists", "camel-k-operator", &metadata.Instance.Pods.CamelKOperator),
-		table.Entry("COS fleetshard sync operator exists", "cos-fleetshard-sync", &metadata.Instance.Pods.CosFleetshardSyncOperator),
-		table.Entry("COS fleetshard camel operator exists", "cos-fleetshard-operator-camel", &metadata.Instance.Pods.CosFleetshardOperatorCamel),
-		table.Entry("COS fleetshard debezium operator exists", "cos-fleetshard-operator-debezium", &metadata.Instance.Pods.CosFleetshardOperatorDebezium),
-		table.Entry("Strimzi cluster operator exists", "strimzi-cluster-operator", &metadata.Instance.Pods.StrimziClusterOperator),
+		table.Entry("Camel-k operator exists", "name=camel-k-operator", &metadata.Instance.Pods.CamelKOperator),
+		table.Entry("COS fleetshard sync operator exists", "app.kubernetes.io/name=cos-fleetshard-sync", &metadata.Instance.Pods.CosFleetshardSyncOperator),
+		table.Entry("COS fleetshard camel operator exists", "app.kubernetes.io/name=cos-fleetshard-operator-camel", &metadata.Instance.Pods.CosFleetshardOperatorCamel),
+		table.Entry("COS fleetshard debezium operator exists", "app.kubernetes.io/name=cos-fleetshard-operator-debezium", &metadata.Instance.Pods.CosFleetshardOperatorDebezium),
+		table.Entry("Strimzi cluster operator exists", "name=strimzi-cluster-operator", &metadata.Instance.Pods.StrimziClusterOperator),
 	)
 })
 
-func CheckPodStatus(clientset *kubernetes.Clientset, podName string) (bool, corev1.Pod) {
-	pods, err := clientset.CoreV1().Pods(cosNamespace).List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		panic(err.Error())
-	}
-	Expect(pods.Items).NotTo(BeEmpty())
+func CheckPodStatus(clientset *kubernetes.Clientset, podSelector string) error {
 
-	for _, pod := range pods.Items {
-		if strings.Contains(pod.GetName(), podName) {
-			containers := pod.Status.ContainerStatuses
-			for i := range containers {
-				if !containers[i].Ready {
-					return false, pod
-				}
-			}
+	options := metav1.ListOptions{
+		LabelSelector: podSelector,
+	}
+	pods, err := clientset.CoreV1().Pods(cosNamespace).List(context.TODO(), options)
+	if err != nil {
+		return err
+	}
+
+	Expect(pods.Items).To(HaveLen(1))
+	pod := pods.Items[0]
+
+	containers := pod.Status.ContainerStatuses
+	for i := range containers {
+		if !containers[i].Ready {
+			return fmt.Errorf("pod with selector %s not ready", podSelector)
 		}
 	}
-	return true, corev1.Pod{}
+
+	return nil
 }
