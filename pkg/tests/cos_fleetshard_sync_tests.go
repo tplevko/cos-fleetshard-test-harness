@@ -126,7 +126,9 @@ func CheckPodStatus(clientset *kubernetes.Clientset, podSelector string) error {
 		return err
 	}
 
-	Expect(pods.Items).To(HaveLen(1))
+	if(len(pods.Items) != 1) {
+		return fmt.Errorf("pod %s not created", podSelector)
+	}
 	pod := pods.Items[0]
 
 	containers := pod.Status.ContainerStatuses
