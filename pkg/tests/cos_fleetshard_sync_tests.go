@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"path/filepath"
 	"time"
+	"strings"
+	"io"
+	"bytes"
 
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/extensions/table"
@@ -13,6 +16,7 @@ import (
 	"k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -114,6 +118,35 @@ var _ = ginkgo.Describe("cos-fleetshard-sync test harness", func() {
 		table.Entry("COS fleetshard debezium operator exists", "app.kubernetes.io/name=cos-fleetshard-operator-debezium", &metadata.Instance.Pods.CosFleetshardOperatorDebezium),
 		table.Entry("Strimzi cluster operator exists", "name=strimzi-cluster-operator", &metadata.Instance.Pods.StrimziClusterOperator),
 	)
+
+	table.DescribeTable("manager communication verification",
+		func(podSelector string, logMatch string, found *bool) {
+			options := metav1.ListOptions{
+				LabelSelector: podSelector,
+			}
+			clientset, err := kubernetes.NewForConfig(config)
+			Expect(err).NotTo(HaveOccurred())
+
+			pods, err := clientset.CoreV1().Pods(cosNamespace).List(context.TODO(), options)
+			pod := pods.Items[0]
+
+			podLogOpts := corev1.PodLogOptions{}
+			req := clientset.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &podLogOpts)
+			podLogs, err := req.Stream(context.TODO())
+			Expect(err).NotTo(HaveOccurred())
+
+			defer podLogs.Close()
+
+			buf := new(bytes.Buffer)
+			_, err = io.Copy(buf, podLogs)
+			Expect(err).NotTo(HaveOccurred())
+
+			str := buf.String()
+			*found = strings.Contains(str, logMatch)
+			Expect(*found).To(BeTrue())
+		},
+		table.Entry("COS fleetshard sync communicating with manager", "app.kubernetes.io/name=cos-fleetshard-sync", "No connectors for cluster", &metadata.Instance.Communication.CosFleetshardSyncCommunication),
+    )
 })
 
 func CheckPodStatus(clientset *kubernetes.Clientset, podSelector string) error {

@@ -22,6 +22,9 @@ type metadata struct {
 
 	// Operators
 	Pods Pods
+
+    // Check communication with manager
+    Communication Communication
 }
 type ManagedConnectors struct {
 	FoundManagedConnectorClusterCRD  bool `json:"found-managedconnectorcluster-crd,string"`
@@ -59,6 +62,10 @@ type Pods struct {
 	CosFleetshardOperatorDebezium bool `json:"cos-fleetshard-operator-debezium-pod-running,string"`
 	CosFleetshardSyncOperator     bool `json:"cos-fleetshard-sync-pod-running,string"`
 	StrimziClusterOperator        bool `json:"strimzi-cluster-operator-pod-running,string"`
+}
+
+type Communication struct {
+    CosFleetshardSyncCommunication bool  `json:"cos-fleetshard-sync-communicating,string"`
 }
 
 // Instance is the singleton instance of metadata.
