@@ -20,4 +20,4 @@ jobs:
       - name: Build and push image
         env:
           IMG: ${{ secrets.IMAGE_REPO_NAME }}
-        run: make build docker-build docker-push
+        run: make docker-build docker-push

@@ -1,6 +1,3 @@
-.PHONY: build
-build:
-	CGO_ENABLED=0 go test -v -c
 
 .PHONY: docker-build
 docker-build: check-env
