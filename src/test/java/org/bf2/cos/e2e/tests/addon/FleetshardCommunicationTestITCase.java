@@ -26,6 +26,7 @@ public class FleetshardCommunicationTestITCase {
         Awaitility.await()
                 .atMost(Duration.ofMinutes(2))
                 .pollInterval(Duration.ofSeconds(10))
+                .pollDelay(Duration.ofSeconds(0))
                 .untilAsserted(() ->
                         Assertions.assertTrue(
                                 client.pods().withName(pod.getMetadata().getName())

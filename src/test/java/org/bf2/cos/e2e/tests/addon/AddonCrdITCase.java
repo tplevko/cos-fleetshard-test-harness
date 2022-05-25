@@ -43,11 +43,12 @@ public class AddonCrdITCase {
     public void crdShouldHaveBeenCreated(String crd) {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(10))
-                .untilAsserted(() ->
-                Assertions.assertNotNull(
-                        client.apiextensions().v1().customResourceDefinitions().withName(crd).get(),
-                        () -> crd + " CRD not created"
-                )
+                .untilAsserted(() -> {
+                    Assertions.assertNotNull(
+                            client.apiextensions().v1().customResourceDefinitions().withName(crd).get(),
+                            () -> crd + " CRD not created"
+                    );
+                }
         );
     }
 

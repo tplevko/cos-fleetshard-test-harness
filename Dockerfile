@@ -8,4 +8,4 @@ COPY src src
 # FIXME this will not download completely everything
 RUN  mvn clean dependency:go-offline
 
-ENTRYPOINT [ "mvn", "verify", "-ntp" ]
+ENTRYPOINT [ "mvn", "verify", "-ntp", "-fn"]
