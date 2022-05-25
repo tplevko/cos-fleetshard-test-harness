@@ -41,5 +41,5 @@ To run the tests locally, build the test image and mount valid kubeconfig file
 
 ```
 $ docker build -f Dockerfile -t cos-fleetshard-test-harness:latest .
-$ docker run --rm -v ~/.kube:/.kube:z -it cos-fleetshard-test-harness:latest
+$ docker run --rm -v ~/.kube:/home/jboss/.kube/:z -it cos-fleetshard-test-harness:latest
 ```
