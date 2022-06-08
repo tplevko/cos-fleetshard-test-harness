@@ -1,19 +1,24 @@
 package org.bf2.cos.e2e.tests.addon;
 
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
 import org.awaitility.Awaitility;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Duration;
+import java.util.Map;
 
 @Order(0)
+@Tags(value = {
+        @Tag("install"),
+        @Tag("upgrade-phase-1"),
+})
 public class AddonCrdITCase {
+
     private static DefaultOpenShiftClient client = new DefaultOpenShiftClient(new OpenShiftConfig(Config.autoConfigure(null)));
 
     @DisplayName("crd should have been created:")
@@ -40,16 +45,14 @@ public class AddonCrdITCase {
             "kafkausers.kafka.strimzi.io",
             "strimzipodsets.core.strimzi.io",
     })
-    public void crdShouldHaveBeenCreated(String crd) {
+    public void crdShouldHaveBeenCreated(String crdName) {
         Awaitility.await()
-                .atMost(Duration.ofSeconds(10))
+                .atMost(Duration.ofSeconds(30))
                 .untilAsserted(() -> {
-                    Assertions.assertNotNull(
-                            client.apiextensions().v1().customResourceDefinitions().withName(crd).get(),
-                            () -> crd + " CRD not created"
-                    );
-                }
-        );
+                            CustomResourceDefinition crd = client.apiextensions().v1().customResourceDefinitions().withName(crdName).get();
+                            Assertions.assertNotNull(crd, () -> crdName + " CRD not created");
+                        }
+                );
     }
 
 }

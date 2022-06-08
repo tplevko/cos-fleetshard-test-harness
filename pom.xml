@@ -9,12 +9,14 @@
 
     <properties>
         <junit.version>5.8.2</junit.version>
+        <junit-launcher.version>1.8.2</junit-launcher.version>
         <awaitility.version>4.1.1</awaitility.version>
         <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
         <kubernetes.client.version>5.12.1</kubernetes.client.version>
+        <log4j.version>2.17.1</log4j.version>
 
         <skip.maven.antrun.plugin>false</skip.maven.antrun.plugin>
-        <osde2e.junit.destination>/test-run-results/junit-report.xml</osde2e.junit.destination>
+        <osde2e.results.destination>/test-run-results</osde2e.results.destination>
     </properties>
 
     <description>Test harness for osde2e</description>
@@ -43,6 +45,13 @@
             <scope>test</scope>
         </dependency>
 
+
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>${junit-launcher.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>openshift-client</artifactId>
@@ -53,6 +62,28 @@
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20220320</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j.version}</version>
         </dependency>
 
     </dependencies>
@@ -71,6 +102,7 @@
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.0.0-M6</version>
                 <configuration>
+                    <groups>${test.groups.include}</groups>
                     <statelessTestsetReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5Xml30StatelessReporter">
                         <disable>false</disable>
                         <version>3.0</version>
@@ -84,6 +116,9 @@
                             junit.jupiter.testclass.order.default=org.junit.jupiter.api.ClassOrderer$OrderAnnotation
                         </configurationParameters>
                     </properties>
+                    <systemPropertyVariables>
+                        <test.upgrade.metadata>${test.upgrade.metadata}</test.upgrade.metadata>
+                    </systemPropertyVariables>
                 </configuration>
                 <executions>
                     <execution>
@@ -115,7 +150,8 @@
                                 <junitreport toDir="target/failsafe-reports">
                                     <fileset dir="target/failsafe-reports" includes="TEST-*.xml" />
                                 </junitreport>
-                                <move file="target/failsafe-reports/TESTS-TestSuites.xml" tofile="${osde2e.junit.destination}"/>
+                                <move file="target/failsafe-reports/TESTS-TestSuites.xml" tofile="${osde2e.results.destination}/junit-report.xml"/>
+                                <move file="target/addon-metadata.json" tofile="${osde2e.results.destination}/addon-metadata.json"/>
                             </target>
                         </configuration>
                         <goals>
@@ -137,5 +173,34 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>install</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <test.groups.include>install</test.groups.include>
+            </properties>
+        </profile>
+        <profile>
+            <id>pre-upgrade</id>
+            <properties>
+                <test.groups.include>upgrade-phase-1</test.groups.include>
+            </properties>
+        </profile>
+        <profile>
+            <id>upgrade</id>
+            <activation>
+                <property>
+                    <name>test.upgrade.metadata</name>
+                </property>
+            </activation>
+            <properties>
+                <test.groups.include>upgrade-phase-2</test.groups.include>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>
