@@ -32,13 +32,13 @@ public class FleetshardCommunicationTestITCase {
                 .list().getItems().get(0);
         Awaitility.await()
                 .atMost(Duration.ofMinutes(2))
-                .pollInterval(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofSeconds(30))
                 .pollDelay(Duration.ofSeconds(0))
                 .untilAsserted(() -> {
                             String log = client.pods().withName(pod.getMetadata().getName()).getLog();
                             Assertions.assertTrue(log.contains("No connectors for cluster"),
                                     () -> {
-                                        LOG.error("pod log:\n {}", log);
+                                        LOG.info("pod log:\n {}", log);
                                         return "sync not communicating with manager:\n" + log;
                                     });
                         }

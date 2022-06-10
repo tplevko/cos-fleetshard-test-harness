@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Order(0)
 @Tags(value = {
@@ -47,7 +48,7 @@ public class AddonCrdITCase {
     })
     public void crdShouldHaveBeenCreated(String crdName) {
         Awaitility.await()
-                .atMost(Duration.ofSeconds(30))
+                .atMost(Duration.ofMinutes(3))
                 .untilAsserted(() -> {
                             CustomResourceDefinition crd = client.apiextensions().v1().customResourceDefinitions().withName(crdName).get();
                             Assertions.assertNotNull(crd, () -> crdName + " CRD not created");

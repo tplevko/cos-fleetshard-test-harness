@@ -15,7 +15,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
-@Order(2)
+@Order(3)
 @Tags(value = {
         @Tag("install")
 })
