@@ -120,7 +120,7 @@
                         </configurationParameters>
                     </properties>
                     <systemPropertyVariables>
-                        <test.upgrade.metadata>${test.upgrade.metadata}</test.upgrade.metadata>
+                        <test.csv.version>${test.csv.version}</test.csv.version>
                     </systemPropertyVariables>
                 </configuration>
                 <executions>
@@ -195,11 +195,6 @@
         </profile>
         <profile>
             <id>upgrade</id>
-            <activation>
-                <property>
-                    <name>test.upgrade.metadata</name>
-                </property>
-            </activation>
             <properties>
                 <test.groups.include>upgrade-phase-2</test.groups.include>
             </properties>
