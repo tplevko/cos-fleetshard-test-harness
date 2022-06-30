@@ -43,6 +43,7 @@ public class UpgradeITCase {
                             var csv = client.operatorHub().clusterServiceVersions().withName(csvName + ".v" + newCsvVersion).get();
                             Assertions.assertNotNull(csv, "new csv not created");
                             Assertions.assertEquals(newCsvVersion, csv.getSpec().getVersion(), "new csv has wrong version");
+                            Assertions.assertNotNull(csv.getStatus(), "csv status is null"); // not sure how it could be, but got a NPE on the next line once
                             Assertions.assertEquals("Succeeded", csv.getStatus().getPhase(), "csv upgrade not succeeded");
                         }
                 );
