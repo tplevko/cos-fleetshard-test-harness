@@ -11,7 +11,7 @@
         <junit.version>5.8.2</junit.version>
         <junit-launcher.version>1.8.2</junit-launcher.version>
         <awaitility.version>4.1.1</awaitility.version>
-        <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
+        <maven.failsafe.plugin.version>3.0.0-M7</maven.failsafe.plugin.version>
         <kubernetes.client.version>5.12.1</kubernetes.client.version>
         <log4j.version>2.17.1</log4j.version>
 
@@ -100,7 +100,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.0.0-M6</version>
+                <version>${maven.failsafe.plugin.version}</version>
                 <configuration>
                     <groups>${test.groups.include}</groups>
                     <statelessTestsetReporter implementation="org.apache.maven.plugin.surefire.extensions.junit5.JUnit5Xml30StatelessReporter">
@@ -139,6 +139,11 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.surefire</groupId>
+                <artifactId>surefire-junit-platform</artifactId>
+                <version>${maven.failsafe.plugin.version}</version>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>3.1.0</version>
@@ -172,7 +177,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.1.1</version>
+                <version>3.3.0</version>
             </plugin>
         </plugins>
     </build>

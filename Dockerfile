@@ -5,7 +5,7 @@ WORKDIR test-harness
 COPY pom.xml pom.xml
 COPY src src
 
-# FIXME this will not download completely everything
-RUN  mvn clean dependency:go-offline
+# pre-download dependencies, excluding unneeded plugins
+RUN  mvn dependency:resolve dependency:resolve-plugins -DexcludeArtifactIds=maven-site-plugin,maven-install-plugin,maven-deploy-plugin
 
 ENTRYPOINT [ "mvn", "verify", "-ntp", "-fn"]
