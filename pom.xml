@@ -204,6 +204,12 @@
                 <test.groups.include>upgrade-phase-2</test.groups.include>
             </properties>
         </profile>
+        <profile>
+            <id>uninstall</id>
+            <properties>
+                <test.groups.include>uninstall</test.groups.include>
+            </properties>
+        </profile>
     </profiles>
 
 </project>
