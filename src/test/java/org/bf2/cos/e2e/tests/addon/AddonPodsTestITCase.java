@@ -54,10 +54,7 @@ public class AddonPodsTestITCase {
                             List<Pod> podList = client.pods().withLabelSelector(podSelector).list().getItems();
                             Assertions.assertEquals(podList.size(), 1, () -> podSelector + " pod not present");
                             PodResource<Pod> pod = client.pods().withName(podList.get(0).getMetadata().getName());
-                            Assertions.assertTrue(pod.isReady(), () ->{
-                                LOG.info("pod status: {}",  podList.get(0).getStatus());
-                                return podSelector + " pod not ready";
-                            });
+                            Assertions.assertTrue(pod.isReady(), () -> podSelector + " pod not ready");
                             reporter.publishEntry(Map.of(
                                     MetadataTestExecutionListener.REPORT_METADATA_CATEGORY_KEY, "pod",
                                     MetadataTestExecutionListener.REPORT_METADATA_ENTRY_KEY, podSelector,
