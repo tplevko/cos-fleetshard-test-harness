@@ -50,18 +50,4 @@ public class ObservabilityITCase {
         // TODO: check the pods in the namespace are running
     }
 
-    @AfterAll
-    public static void deleteObservabilityNamespace() {
-        // this is a hack to prevent noise in pagerduty
-        var obsCrd = client.genericKubernetesResources(OBSERVABILITY_CONTEXT)
-                .withName("rhoc-observability-stack");
-        obsCrd.delete();
-        var obsNs = client.namespaces().withName("redhat-openshift-connectors-observability");
-        obsNs.delete();
-        Awaitility.await()
-                .atMost(Duration.ofSeconds(30))
-                .pollInterval(Duration.ofSeconds(2))
-                .pollDelay(Duration.ofSeconds(0))
-                .until(() -> obsNs.get() == null);
-    }
 }
